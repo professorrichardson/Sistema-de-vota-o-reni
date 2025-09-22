@@ -2,35 +2,125 @@
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
-    <title>Dashboard de Votação</title>
+    <title><%= appName %> - Dashboard</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css">
+    <style>
+        .card-votacao { transition: transform 0.2s; }
+        .card-votacao:hover { transform: translateY(-5px); }
+        .ranking-badge {
+            position: absolute; top: -10px; right: -10px;
+            width: 40px; height: 40px; border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            font-weight: bold; font-size: 1.2em;
+        }
+        .logo-header { max-height: 80px; width: auto; }
+        .header-section {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 10px; padding: 20px; margin-bottom: 30px; color: white;
+        }
+    </style>
 </head>
 <body>
-    <div class="container mt-5">
-        <h1 class="mb-4">Dashboard de Votação</h1>
-        <hr>
-        
-        <h2 class="mt-4">Cadastrar Novo Projeto</h2>
-        <form action="/cadastrar" method="POST" class="d-flex gap-2 mb-4">
-            <input type="text" name="nome" placeholder="Nome do Projeto" class="form-control" required>
-            <button type="submit" class="btn btn-primary">Cadastrar</button>
-        </form>
+    <div class="container mt-4">
+        <!-- Cabeçalho com Logo -->
+        <div class="header-section text-center">
+            <div class="row align-items-center">
+                <div class="col-md-2">
+                    <img src="/img/logo.png" alt="Logo do Colégio" class="logo-header">
+                </div>
+                <div class="col-md-10">
+                    <h1 class="mb-0"><%= appName %></h1>
+                    <p class="mb-0"><%= schoolName %></p>
+                </div>
+            </div>
+        </div>
 
-        <h2 class="mt-4">Projetos Cadastrados</h2>
+        <!-- Resto do conteúdo do dashboard permanece igual -->
         <div class="row">
-            <% projetos.forEach(projeto => { %>
-                <div class="col-md-4 mb-4">
-                    <div class="card text-center">
-                        <div class="card-body">
-                            <h5 class="card-title"><%= projeto.nome %></h5>
-                            <p class="card-text">Escaneie o QR Code para votar.</p>
-                            <img src="/qrcode/<%= projeto.id %>" alt="QR Code" class="img-fluid mb-3">
-                            <a href="/resultados/<%= projeto.id %>" class="btn btn-secondary">Ver Resultados</a>
+            <!-- Formulário de Cadastro -->
+            <div class="col-md-4">
+                <div class="card">
+                    <div class="card-header bg-primary text-white">
+                        <h5 class="mb-0">📋 Cadastrar Novo Projeto</h5>
+                    </div>
+                    <div class="card-body">
+                        <form action="/cadastrar" method="POST">
+                            <div class="mb-3">
+                                <label for="nome" class="form-label">Nome do Projeto:</label>
+                                <input type="text" name="nome" class="form-control" placeholder="Digite o nome do projeto" required>
+                            </div>
+                            <button type="submit" class="btn btn-primary w-100">Cadastrar Projeto</button>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- Menu de Navegação -->
+                <div class="card mt-3">
+                    <div class="card-body">
+                        <h6>Navegação Rápida</h6>
+                        <div class="d-grid gap-2">
+                            <a href="/relatorio" class="btn btn-outline-success">📊 Ver Relatório Completo</a>
+                            <a href="/imprimir" class="btn btn-outline-info">🖨️ Imprimir QR Codes</a>
                         </div>
                     </div>
                 </div>
-            <% }); %>
+            </div>
+
+            <!-- Lista de Projetos -->
+            <div class="col-md-8">
+                <div class="card">
+                    <div class="card-header bg-success text-white">
+                        <h5 class="mb-0" id="projetos">📋 Projetos Cadastrados</h5>
+                    </div>
+                    <div class="card-body">
+                        <% if (projetos.length === 0) { %>
+                            <div class="text-center py-4">
+                                <p class="text-muted">Nenhum projeto cadastrado ainda.</p>
+                                <p>Use o formulário ao lado para cadastrar o primeiro projeto.</p>
+                            </div>
+                        <% } else { %>
+                            <div class="row">
+                                <% projetos.forEach((projeto, index) => { %>
+                                    <div class="col-lg-6 mb-3">
+                                        <div class="card card-votacao h-100 position-relative">
+                                            <% if (index < 3 && projeto.total_votos > 0) { %>
+                                                <span class="ranking-badge bg-warning text-dark">#<%= index + 1 %></span>
+                                            <% } %>
+                                            <div class="card-body text-center">
+                                                <h5 class="card-title"><%= projeto.nome %></h5>
+                                                <p class="card-text">
+                                                    <span class="badge bg-primary fs-6"><%= projeto.total_votos %> votos</span>
+                                                </p>
+                                                
+                                                <!-- QR Code -->
+                                                <div class="mb-3">
+                                                    <img src="/qrcode/<%= projeto.id %>" alt="QR Code" class="img-fluid" style="max-width: 150px;">
+                                                </div>
+                                                
+                                                <!-- Botões de Ação -->
+                                                <div class="btn-group w-100" role="group">
+                                                    <a href="/votar/<%= projeto.id %>" class="btn btn-outline-primary btn-sm" target="_blank">
+                                                        👁️ Visualizar Votação
+                                                    </a>
+                                                    <a href="/resultados/<%= projeto.id %>" class="btn btn-outline-success btn-sm">
+                                                        📊 Resultados
+                                                    </a>
+                                                    <a href="/imprimir/<%= projeto.id %>" class="btn btn-outline-info btn-sm">
+                                                        🖨️ Imprimir
+                                                    </a>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                <% }); %>
+                            </div>
+                        <% } %>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
